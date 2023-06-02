@@ -34,21 +34,21 @@ function initWebSocket() {
   socket = new WebSocket(uri);
   // socket = new WebSocket('wss://localhost:6006/');
 
-  // Connection opened
-  socket.addEventListener('open', function(event) {
-    console.log('connected');
-    recordBtn.disabled = false;
-    connectBtn.disabled = true;
-    connectBtn.innerHTML = 'Connected!';
-  });
+  // // Connection opened
+  // socket.addEventListener('open', function(event) {
+  //   console.log('connected');
+  //   recordBtn.disabled = false;
+  //   connectBtn.disabled = true;
+  //   connectBtn.innerHTML = '已连接!';
+  // });
 
-  // Connection closed
-  socket.addEventListener('close', function(event) {
-    console.log('disconnected');
-    recordBtn.disabled = true;
-    connectBtn.disabled = false;
-    connectBtn.innerHTML = 'Click me to connect!';
-  });
+  // // Connection closed
+  // socket.addEventListener('close', function(event) {
+  //   console.log('disconnected');
+  //   recordBtn.disabled = true;
+  //   connectBtn.disabled = false;
+  //   connectBtn.innerHTML = '点我连接!';
+  // });
 
   // Listen for messages
   socket.addEventListener('message', function(event) {
@@ -106,9 +106,9 @@ clearBtn.onclick = function() {
   recognition_text = [];
 };
 
-connectBtn.onclick = function() {
-  initWebSocket();
-};
+// connectBtn.onclick = function() {
+//   initWebSocket();
+// };
 
 // copied/modified from https://mdn.github.io/web-dictaphone/
 // and
@@ -171,6 +171,7 @@ if (navigator.mediaDevices.getUserMedia) {
     mediaStream.connect(analyser);
 
     recordBtn.onclick = function() {
+      initWebSocket();
       mediaStream.connect(recorder);
       mediaStream.connect(analyser);
       recorder.connect(audioCtx.destination);
@@ -203,7 +204,7 @@ if (navigator.mediaDevices.getUserMedia) {
       recordBtn.disabled = false;
 
       const clipName =
-          prompt('Enter a name for your sound clip?', 'My unnamed clip');
+          prompt('保存的文件名?', '未命名片段');
 
       const clipContainer = document.createElement('article');
       const clipLabel = document.createElement('p');
@@ -211,11 +212,11 @@ if (navigator.mediaDevices.getUserMedia) {
       const deleteButton = document.createElement('button');
       clipContainer.classList.add('clip');
       audio.setAttribute('controls', '');
-      deleteButton.textContent = 'Delete';
+      deleteButton.textContent = '删除';
       deleteButton.className = 'delete';
 
       if (clipName === null) {
-        clipLabel.textContent = 'My unnamed clip';
+        clipLabel.textContent = '未命名片段';
       } else {
         clipLabel.textContent = clipName;
       }
@@ -242,7 +243,7 @@ if (navigator.mediaDevices.getUserMedia) {
 
       clipLabel.onclick = function() {
         const existingName = clipLabel.textContent;
-        const newClipName = prompt('Enter a new name for your sound clip?');
+        const newClipName = prompt('给这段声音片段起个名?');
         if (newClipName === null) {
           clipLabel.textContent = existingName;
         } else {
@@ -259,7 +260,7 @@ if (navigator.mediaDevices.getUserMedia) {
   navigator.mediaDevices.getUserMedia(constraints).then(onSuccess, onError);
 } else {
   console.log('getUserMedia not supported on your browser!');
-  alert('getUserMedia not supported on your browser!');
+  alert('您的浏览器不支持getUserMedia！请更换浏览器后重试。');
 }
 
 function visualize(stream) {
