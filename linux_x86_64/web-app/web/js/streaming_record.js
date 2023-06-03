@@ -23,8 +23,8 @@ function initWebSocket() {
   if (window.location.protocol == 'https:') {
     protocol = 'wss://'
   }
-  let server_ip = serverIpInput.value;
-  let server_port = serverPortInput.value;
+  let server_ip = serverIpInput;
+  let server_port = serverPortInput;
   console.log('protocol: ', protocol);
   console.log('server_ip: ', server_ip);
   console.log('server_port: ', server_port);
@@ -32,23 +32,6 @@ function initWebSocket() {
   let uri = protocol + server_ip + ':' + server_port;
   console.log('uri', uri);
   socket = new WebSocket(uri);
-  // socket = new WebSocket('wss://localhost:6006/');
-
-  // // Connection opened
-  // socket.addEventListener('open', function(event) {
-  //   console.log('connected');
-  //   recordBtn.disabled = false;
-  //   connectBtn.disabled = true;
-  //   connectBtn.innerHTML = '已连接!';
-  // });
-
-  // // Connection closed
-  // socket.addEventListener('close', function(event) {
-  //   console.log('disconnected');
-  //   recordBtn.disabled = true;
-  //   connectBtn.disabled = false;
-  //   connectBtn.innerHTML = '点我连接!';
-  // });
 
   // Listen for messages
   socket.addEventListener('message', function(event) {
@@ -69,25 +52,23 @@ window.onload = (event) => {
   console.log('page is fully loaded');
   console.log('protocol', window.location.protocol);
   console.log('port', window.location.port);
-  if (window.location.protocol == 'https:') {
-    document.getElementById('ws-protocol').textContent = 'wss://';
-  }
-  serverIpInput.value = window.location.hostname;
-  serverPortInput.value = window.location.port;
+  // if (window.location.protocol == 'https:') {
+  //   document.getElementById('ws-protocol').textContent = 'wss://';
+  // }
+  console.log(JSON.stringify(window.location));
+
+  serverIpInput = window.location.hostname;
+  serverPortInput = window.location.port;
 };
 
-const serverIpInput = document.getElementById('server-ip');
-const serverPortInput = document.getElementById('server-port');
+var serverIpInput = '';
+var serverPortInput = '';
 
-const connectBtn = document.getElementById('connect');
-const recordBtn = document.getElementById('streaming_record');
-const stopBtn = document.getElementById('streaming_stop');
-const clearBtn = document.getElementById('clear');
+const recordBtn = document.getElementById('record-button');
 const soundClips = document.getElementById('sound-clips');
 const canvas = document.getElementById('canvas');
 const mainSection = document.querySelector('.container');
-
-stopBtn.disabled = true;
+const recordImage = document.getElementById('record-image');
 
 let audioCtx;
 const canvasCtx = canvas.getContext('2d');
@@ -100,23 +81,10 @@ let recorder = null;   // the microphone
 let leftchannel = [];  // TODO: Use a single channel
 
 let recordingLength = 0;  // number of samples so far
-
-clearBtn.onclick = function() {
-  document.getElementById('results').value = '';
-  recognition_text = [];
-};
-
-// connectBtn.onclick = function() {
-//   initWebSocket();
-// };
-
-// copied/modified from https://mdn.github.io/web-dictaphone/
-// and
-// https://gist.github.com/meziantou/edb7217fddfbb70e899e
+let isRecording = false;
 if (navigator.mediaDevices.getUserMedia) {
   console.log('getUserMedia supported.');
 
-  // see https://w3c.github.io/mediacapture-main/#dom-mediadevices-getusermedia
   const constraints = {audio: true};
 
   let onSuccess = function(stream) {
@@ -131,8 +99,6 @@ if (navigator.mediaDevices.getUserMedia) {
     mediaStream = audioCtx.createMediaStreamSource(stream);
     console.log(mediaStream);
 
-    // https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/createScriptProcessor
-    // bufferSize: the onaudioprocess event is called when the buffer is full
     var bufferSize = 2048;
     var numberOfInputChannels = 2;
     var numberOfOutputChannels = 2;
@@ -171,19 +137,30 @@ if (navigator.mediaDevices.getUserMedia) {
     mediaStream.connect(analyser);
 
     recordBtn.onclick = function() {
+      if(!isRecording){
+        startRecord();
+      }
+      else{
+        stopRecord();
+      }
+    };
+
+    function startRecord(){
       initWebSocket();
       mediaStream.connect(recorder);
       mediaStream.connect(analyser);
       recorder.connect(audioCtx.destination);
 
       console.log('recorder started');
-      recordBtn.style.background = 'red';
+      
+      canvas.style.display = "block";
+      recordImage.style.display = "none";
 
-      stopBtn.disabled = false;
-      recordBtn.disabled = true;
-    };
+      isRecording = true;
 
-    stopBtn.onclick = function() {
+    }
+
+    function stopRecord() {
       console.log('recorder stopped');
 
       socket.send('Done');
@@ -196,12 +173,9 @@ if (navigator.mediaDevices.getUserMedia) {
       mediaStream.disconnect(recorder);
       mediaStream.disconnect(analyser);
 
-      recordBtn.style.background = '';
-      recordBtn.style.color = '';
-      // mediaRecorder.requestData();
-
-      stopBtn.disabled = true;
-      recordBtn.disabled = false;
+      isRecording =false;
+      canvas.style.display = "none";
+      recordImage.style.display = "block";
 
       const clipName =
           prompt('保存的文件名?', '未命名片段');
@@ -250,6 +224,8 @@ if (navigator.mediaDevices.getUserMedia) {
           clipLabel.textContent = newClipName;
         }
       };
+
+
     };
   };
 
@@ -290,11 +266,11 @@ function visualize(stream) {
 
     analyser.getByteTimeDomainData(dataArray);
 
-    canvasCtx.fillStyle = 'rgb(200, 200, 200)';
+    canvasCtx.fillStyle = '#f44336';
     canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
 
-    canvasCtx.lineWidth = 2;
-    canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
+    canvasCtx.lineWidth = 10;
+    canvasCtx.strokeStyle = '#fff';
 
     canvasCtx.beginPath();
 
@@ -320,15 +296,12 @@ function visualize(stream) {
 }
 
 window.onresize = function() {
-  canvas.width = mainSection.offsetWidth;
 };
 
 window.onresize();
-
-// this function is copied/modified from
-// https://gist.github.com/meziantou/edb7217fddfbb70e899e
 function flatten(listOfSamples) {
   let n = 0;
+  console.log(listOfSamples);
   for (let i = 0; i < listOfSamples.length; ++i) {
     n += listOfSamples[i].length;
   }
@@ -342,8 +315,6 @@ function flatten(listOfSamples) {
   return ans;
 }
 
-// this function is copied/modified from
-// https://gist.github.com/meziantou/edb7217fddfbb70e899e
 function toWav(samples) {
   let buf = new ArrayBuffer(44 + samples.length * 2);
   var view = new DataView(buf);

@@ -1,0 +1,1 @@
+python streaming_server.py --rule3-min-utterance-length 1000.0 --port 6006 --max-batch-size 50 --max-wait-ms 5 --nn-pool-size 1 --tokens ./traindata/tokens.txt --encoder-model ./traindata/encoder-epoch-99-avg-1.onnx --decoder-model ./traindata/decoder-epoch-99-avg-1.onnx --joiner-model ./traindata/joiner-epoch-99-avg-1.onnx --certificate ./web/cert.pem --doc-root ./web
