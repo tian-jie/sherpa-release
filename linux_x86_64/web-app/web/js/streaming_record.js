@@ -34,16 +34,24 @@ function initWebSocket() {
   socket = new WebSocket(uri);
 
   // Listen for messages
-  socket.addEventListener('message', function(event) {
+  socket.addEventListener('message', function (event) {
     let message = JSON.parse(event.data);
     if (message.segment in recognition_text) {
-      recognition_text[message.segment] = message.text;
-    } else {
-      recognition_text.push(message.text);
+      recognition_text[message.segment].message = message.text;
+      currentRecogize.innerHTML = message.text;
+  } else {
+      recognition_text.push({ message: message.text, segment: message.segment, startTime: audioCtx.currentTime });
+      if (message.segment > 0) {
+        var lastSegment = recognition_text[message.segment - 1];
+        lastSegment.endTime = audioCtx.currentTime;
+        // 写入当前页面
+        if (lastSegment.message.length > 0) {
+          resultArea.innerHTML = resultArea.innerHTML + `<div style="width: 85%;fill: #aaa;border-radius: 10px" onclick="playAudio(` + lastSegment.startTime + `,` + lastSegment.endTime + `)">` + lastSegment.segment + `: ` + lastSegment.message + `</div>`;
+        }
+        currentRecogize.innerHTML = "";
+      }
     }
-    let text_area = document.getElementById('results');
-    text_area.value = getDisplayResult();
-    text_area.scrollTop = text_area.scrollHeight;  // auto scroll
+
     console.log('Received message: ', event.data);
   });
 }
@@ -69,6 +77,9 @@ const soundClips = document.getElementById('sound-clips');
 const canvas = document.getElementById('canvas');
 const mainSection = document.querySelector('.container');
 const recordImage = document.getElementById('record-image');
+const currentRecogize = document.getElementById('current-recognize');
+const resultArea = document.getElementById('results');
+let audio;
 
 let audioCtx;
 const canvasCtx = canvas.getContext('2d');
@@ -85,9 +96,9 @@ let isRecording = false;
 if (navigator.mediaDevices.getUserMedia) {
   console.log('getUserMedia supported.');
 
-  const constraints = {audio: true};
+  const constraints = { audio: true };
 
-  let onSuccess = function(stream) {
+  let onSuccess = function (stream) {
     if (!audioCtx) {
       audioCtx = new AudioContext();
     }
@@ -104,14 +115,14 @@ if (navigator.mediaDevices.getUserMedia) {
     var numberOfOutputChannels = 2;
     if (audioCtx.createScriptProcessor) {
       recorder = audioCtx.createScriptProcessor(
-          bufferSize, numberOfInputChannels, numberOfOutputChannels);
+        bufferSize, numberOfInputChannels, numberOfOutputChannels);
     } else {
       recorder = audioCtx.createJavaScriptNode(
-          bufferSize, numberOfInputChannels, numberOfOutputChannels);
+        bufferSize, numberOfInputChannels, numberOfOutputChannels);
     }
     console.log(recorder);
 
-    recorder.onaudioprocess = function(e) {
+    recorder.onaudioprocess = function (e) {
       let samples = new Float32Array(e.inputBuffer.getChannelData(0))
       samples = downsampleBuffer(samples, expectedSampleRate);
 
@@ -136,23 +147,23 @@ if (navigator.mediaDevices.getUserMedia) {
     visualize(stream);
     mediaStream.connect(analyser);
 
-    recordBtn.onclick = function() {
-      if(!isRecording){
+    recordBtn.onclick = function () {
+      if (!isRecording) {
         startRecord();
       }
-      else{
+      else {
         stopRecord();
       }
     };
 
-    function startRecord(){
+    function startRecord() {
       initWebSocket();
       mediaStream.connect(recorder);
       mediaStream.connect(analyser);
       recorder.connect(audioCtx.destination);
 
       console.log('recorder started');
-      
+
       canvas.style.display = "block";
       recordImage.style.display = "none";
 
@@ -168,21 +179,23 @@ if (navigator.mediaDevices.getUserMedia) {
 
       socket.close();
 
+      console.log(recognition_text);
+
       // stopBtn recording
       recorder.disconnect(audioCtx.destination);
       mediaStream.disconnect(recorder);
       mediaStream.disconnect(analyser);
 
-      isRecording =false;
+      isRecording = false;
       canvas.style.display = "none";
       recordImage.style.display = "block";
 
       const clipName =
-          prompt('保存的文件名?', '未命名片段');
+        prompt('保存的文件名?', '未命名片段');
 
       const clipContainer = document.createElement('article');
       const clipLabel = document.createElement('p');
-      const audio = document.createElement('audio');
+      audio = document.createElement('audio');
       const deleteButton = document.createElement('button');
       clipContainer.classList.add('clip');
       audio.setAttribute('controls', '');
@@ -210,12 +223,12 @@ if (navigator.mediaDevices.getUserMedia) {
       audio.src = audioURL;
       console.log('recorder stopped');
 
-      deleteButton.onclick = function(e) {
+      deleteButton.onclick = function (e) {
         let evtTgt = e.target;
         evtTgt.parentNode.parentNode.removeChild(evtTgt.parentNode);
       };
 
-      clipLabel.onclick = function() {
+      clipLabel.onclick = function () {
         const existingName = clipLabel.textContent;
         const newClipName = prompt('给这段声音片段起个名?');
         if (newClipName === null) {
@@ -229,7 +242,7 @@ if (navigator.mediaDevices.getUserMedia) {
     };
   };
 
-  let onError = function(err) {
+  let onError = function (err) {
     console.log('The following error occured: ' + err);
   };
 
@@ -295,7 +308,7 @@ function visualize(stream) {
   }
 }
 
-window.onresize = function() {
+window.onresize = function () {
 };
 
 window.onresize();
@@ -325,7 +338,7 @@ function toWav(samples) {
   view.setUint32(4, 36 + samples.length * 2, true);  // chunkSize
   //                   E V A W
   view.setUint32(8, 0x45564157, true);  // format
-                                        //
+  //
   //                      t m f
   view.setUint32(12, 0x20746d66, true);          // subchunk1ID
   view.setUint32(16, 16, true);                  // subchunk1Size, 16 for PCM
@@ -344,7 +357,7 @@ function toWav(samples) {
     offset += 2;
   }
 
-  return new Blob([view], {type: 'audio/wav'});
+  return new Blob([view], { type: 'audio/wav' });
 }
 
 // this function is copied from
@@ -371,3 +384,10 @@ function downsampleBuffer(buffer, exportSampleRate) {
   }
   return result;
 };
+
+function playAudio(startTime, endTime){
+  var duration = endTime - startTime;
+  audio.currentTime = startTime;
+  audio.play();
+  setTimeout(()=>{audio.pause()}, duration*1000);
+}
