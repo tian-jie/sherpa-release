@@ -1,6 +1,6 @@
 FROM ubuntu
 RUN apt-get update && apt-get upgrade -y && apt-get install -y python3.10 pip git cmake g++ git-lfs && ln /usr/bin/python3.10 /usr/bin/python
-RUN pip install OpenSSL numpy
+RUN pip install pyOpenSSL numpy
 
 WORKDIR /
 RUN git clone https://github.com/k2-fsa/sherpa-onnx.git \
