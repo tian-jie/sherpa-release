@@ -93,6 +93,7 @@ const recordImage = document.getElementById('record-image');
 const currentRecogize = document.getElementById('current-recognize');
 const resultArea = document.getElementById('results');
 const audioSection = document.getElementById('audio-section');
+const audioDuration = document.getElementById('audio-duration');
 let audio; //= document.getElementsByTagName('audio')[0];
 
 let audioCtx;
@@ -213,6 +214,8 @@ if (navigator.mediaDevices.getUserMedia) {
       leftchannel = [];
       const audioURL = window.URL.createObjectURL(blob);
       audio.src = audioURL;
+      audioDuration.innerText = transTime(audio.duration);
+
       console.log('recorder stopped');
       initAudioEvent();
     };
