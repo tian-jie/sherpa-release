@@ -1,6 +1,6 @@
 FROM ubuntu
 RUN apt-get update && apt-get upgrade -y && apt-get install -y python3.10 pip git cmake g++ git-lfs && ln /usr/bin/python3.10 /usr/bin/python
-RUN pip install pyOpenSSL numpy
+RUN pip install pyOpenSSL websockets numpy
 
 WORKDIR /
 RUN git clone https://github.com/k2-fsa/sherpa-onnx.git \
@@ -25,6 +25,7 @@ WORKDIR /sherpa-release/linux_x86_64/web-app
 
 EXPOSE 6006
 
-#ENTRYPOINT python streaming_server.py --rule3-min-utterance-length 1000.0 --port 6006 --max-batch-size 50 --max-wait-ms 5 --nn-pool-size 1 --tokens ./traindata/tokens.txt --encoder-model ./traindata/encoder-epoch-99-avg-1.onnx --decoder-model ./traindata/decoder-epoch-99-avg-1.onnx --joiner-model ./traindata/joiner-epoch-99-avg-1.onnx --certificate ./web/cert.pem --doc-root ./web
+ENTRYPOINT python streaming_server.py --rule3-min-utterance-length 1000.0 --port 6006 --max-batch-size 50 --max-wait-ms 5 --nn-pool-size 1 --tokens ./traindata/tokens.txt --encoder-model ./traindata/encoder-epoch-99-avg-1.onnx --decoder-model ./traindata/decoder-epoch-99-avg-1.onnx --joiner-model ./traindata/joiner-epoch-99-avg-1.onnx --doc-root ./web
 
-ENTRYPOINT /bin/sh
+
+#ENTRYPOINT /bin/sh

@@ -17,6 +17,13 @@ function getDisplayResult() {
   return ans;
 }
 
+const messageHtmlTemplate = `
+      <div class="text-block" id="message_@@ID" onclick="playAudio(@@starttime, @@endtime)">
+      <div class="time-block">@@starttime_format</div>
+      <span>@@message</span>
+      </div>
+`;
+
 function initWebSocket() {
   console.log('Creating websocket')
   let protocol = 'ws://';
@@ -39,14 +46,21 @@ function initWebSocket() {
     if (message.segment in recognition_text) {
       recognition_text[message.segment].message = message.text;
       currentRecogize.innerHTML = message.text;
-  } else {
+    } else {
       recognition_text.push({ message: message.text, segment: message.segment, startTime: audioCtx.currentTime });
       if (message.segment > 0) {
         var lastSegment = recognition_text[message.segment - 1];
         lastSegment.endTime = audioCtx.currentTime;
         // 写入当前页面
         if (lastSegment.message.length > 0) {
-          resultArea.innerHTML = resultArea.innerHTML + `<div style="width: 85%;fill: #aaa;border-radius: 10px" onclick="playAudio(` + lastSegment.startTime + `,` + lastSegment.endTime + `)">` + lastSegment.segment + `: ` + lastSegment.message + `</div>`;
+          var messageBlockHtml = messageHtmlTemplate
+            .replace("@@ID", lastSegment.segment)
+            .replace("@@starttime", lastSegment.startTime)
+            .replace("@@starttime_format", transTime(lastSegment.startTime))
+            .replace("@@message", lastSegment.message)
+            .replace("@@endtime", lastSegment.endTime);
+
+          resultArea.innerHTML = resultArea.innerHTML + messageBlockHtml;
         }
         currentRecogize.innerHTML = "";
       }
@@ -73,13 +87,13 @@ var serverIpInput = '';
 var serverPortInput = '';
 
 const recordBtn = document.getElementById('record-button');
-const soundClips = document.getElementById('sound-clips');
 const canvas = document.getElementById('canvas');
 const mainSection = document.querySelector('.container');
 const recordImage = document.getElementById('record-image');
 const currentRecogize = document.getElementById('current-recognize');
 const resultArea = document.getElementById('results');
-let audio;
+const audioSection = document.getElementById('audio-section');
+let audio; //= document.getElementsByTagName('audio')[0];
 
 let audioCtx;
 const canvasCtx = canvas.getContext('2d');
@@ -108,7 +122,6 @@ if (navigator.mediaDevices.getUserMedia) {
 
     // creates an audio node from the microphone incoming stream
     mediaStream = audioCtx.createMediaStreamSource(stream);
-    console.log(mediaStream);
 
     var bufferSize = 2048;
     var numberOfInputChannels = 2;
@@ -189,32 +202,11 @@ if (navigator.mediaDevices.getUserMedia) {
       isRecording = false;
       canvas.style.display = "none";
       recordImage.style.display = "block";
-
-      const clipName =
-        prompt('保存的文件名?', '未命名片段');
-
-      const clipContainer = document.createElement('article');
-      const clipLabel = document.createElement('p');
+      audioSection.style.display = "block";
       audio = document.createElement('audio');
-      const deleteButton = document.createElement('button');
-      clipContainer.classList.add('clip');
       audio.setAttribute('controls', '');
-      deleteButton.textContent = '删除';
-      deleteButton.className = 'delete';
-
-      if (clipName === null) {
-        clipLabel.textContent = '未命名片段';
-      } else {
-        clipLabel.textContent = clipName;
-      }
-
-      clipContainer.appendChild(audio);
-
-      clipContainer.appendChild(clipLabel);
-      clipContainer.appendChild(deleteButton);
-      soundClips.appendChild(clipContainer);
-
-      audio.controls = true;
+      //audioSection.appendChild(audio);
+      //audio.controls = true;
       let samples = flatten(leftchannel);
       const blob = toWav(samples);
 
@@ -222,23 +214,7 @@ if (navigator.mediaDevices.getUserMedia) {
       const audioURL = window.URL.createObjectURL(blob);
       audio.src = audioURL;
       console.log('recorder stopped');
-
-      deleteButton.onclick = function (e) {
-        let evtTgt = e.target;
-        evtTgt.parentNode.parentNode.removeChild(evtTgt.parentNode);
-      };
-
-      clipLabel.onclick = function () {
-        const existingName = clipLabel.textContent;
-        const newClipName = prompt('给这段声音片段起个名?');
-        if (newClipName === null) {
-          clipLabel.textContent = existingName;
-        } else {
-          clipLabel.textContent = newClipName;
-        }
-      };
-
-
+      initAudioEvent();
     };
   };
 
@@ -385,9 +361,90 @@ function downsampleBuffer(buffer, exportSampleRate) {
   return result;
 };
 
-function playAudio(startTime, endTime){
+function playAudio(startTime, endTime) {
   var duration = endTime - startTime;
+  console.log("startTime: ", startTime);
+  console.log("endTime: ", endTime);
+  console.log("duration: ", duration);
   audio.currentTime = startTime;
   audio.play();
-  setTimeout(()=>{audio.pause()}, duration*1000);
+  audioPlayer.src = './pic/audiopause.png';
+  setTimeout(() => {
+    audio.pause(); 
+    audioPlayer.src = './pic/audioplay.png';
+  }, duration * 1000);
+}
+
+
+function initAudioEvent() {
+  var audioPlayer = document.getElementById('audioPlayer');
+
+  // 点击播放/暂停图片时，控制音乐的播放与暂停
+  audioPlayer.addEventListener('click', function () {
+    // 监听音频播放时间并更新进度条
+    audio.addEventListener('timeupdate', function () {
+      document.getElementById('audioCurTime').innerText = transTime(audio.currentTime);
+    }, false);
+
+    // 监听播放完成事件
+    audio.addEventListener('ended', function () {
+      audioEnded();
+    }, false);
+
+    // 改变播放/暂停图片
+    if (audio.paused) {
+      // 开始播放当前点击的音频
+      audio.play();
+      audioPlayer.src = './pic/audiopause.png';
+    } else {
+      audio.pause();
+      audioPlayer.src = './pic/audioplay.png';
+    }
+  }, false);
+
+}
+
+/**
+* 播放完成时把进度调回开始的位置
+*/
+function audioEnded() {
+  document.getElementById('audioCurTime').innerText = transTime(0);
+  document.getElementById('audioPlayer').src = './pic/audioplay.png';
+}
+
+/**
+* 音频播放时间换算
+* @param {number} value - 音频当前播放时间，单位秒
+*/
+function transTime(value) {
+  var time = "";
+  var h = parseInt(value / 3600);
+  value %= 3600;
+  var m = parseInt(value / 60);
+  var s = parseInt(value % 60);
+  if (h > 0) {
+    time = formatTime(h + ":" + m + ":" + s);
+  } else {
+    time = formatTime(m + ":" + s);
+  }
+
+  return time;
+}
+
+/**
+* 格式化时间显示，补零对齐
+* eg：2:4  -->  02:04
+* @param {string} value - 形如 h:m:s 的字符串 
+*/
+function formatTime(value) {
+  var time = "";
+  var s = value.split(':');
+  var i = 0;
+  for (; i < s.length - 1; i++) {
+    time += s[i].length == 1 ? ("0" + s[i]) : s[i];
+    time += ":";
+  }
+  time += s[i].length == 1 ? ("0" + s[i]) : s[i];
+
+  return time;
 }

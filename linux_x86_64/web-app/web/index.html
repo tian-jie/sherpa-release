@@ -1,39 +1,24 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <!-- Required meta tags -->
-  <meta charset="utf-8"></meta>
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"></meta>
+  <meta charset="utf-8">
+  </meta>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  </meta>
 
   <!-- Bootstrap CSS -->
-  <link rel="stylesheet"
-        href="./css/bootstrap.min.css"
-        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
-        crossorigin="anonymous">
+  <link rel="stylesheet" href="./css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
   </link>
 
-  <script src="./js/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="./js/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+    crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" type="text/css" href="./css/style.css" crossorigin="anonymous">
 
   <title>实时语音识别</title>
-  <style>
-    .record-button {
-      background: #F44336;
-      border: none;
-      border-radius: 50%;
-      width: 64px;
-      height: 64px;
-      position: absolute;
-      bottom: 0px;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-    
-    .record-button svg {
-      width: 24px;
-      height: 24px;
-      fill: #fff;
-    }
-    </style>
 </head>
 
 
@@ -41,32 +26,42 @@
   <div id="nav"></div>
   <div class="mb-3">
     <label for="results" class="form-label">识别结果</label>
-    <div class="form-control" id="results" style="height:80vh;background-color:aliceblue"></div>
+    <div class="form-control" id="results" style="height:80vh;background-color:#fdfdfd">
+      <div class="text-block" id="message_@@ID" onclick="playAudio('@@starttime, @@endtime')">
+        <div class="time-block">@@starttime_format</div>
+        <span>@@message</span>
+      </div>
+    </div>
   </div>
-
-  <section flex="1" overflow="auto" id="sound-clips">
-  </section>
 
   <button class="record-button" id="record-button">
     <!-- <img id="record-image" style="width:30px" src="pic/chat_record.png"> -->
-    <div id="record-image" style="width:52px;text-align: center;"><span style="color: #fff; font-weight:700;">REC</span></div>
+    <div id="record-image" style="width:52px;text-align: center;"><span style="color: #fff; font-weight:700;">REC</span>
+    </div>
     <canvas id="canvas" style="display: none;width: 50px;height: 30px;"></canvas>
   </button>
 
   <div id="current-recognize" style="fill: #aaa;border-radius: 10px"></div>
 
+  <div class="audio-wrapper" id="audio-section">
+    <div class="audio-left"><img id="audioPlayer" src="pic/audioplay.png"></div>
+    <div class="audio-right">
+      <p style="max-width: 536px;">会议录音</p>
+      <div class="audio-time"><span class="audio-length-current" id="audioCurTime">00:00</span><span> / </span><span class="audio-length-current" id="audioCurTime">00:00</span></div>
+    </div>
+  </div>
+
   <!-- Optional JavaScript -->
   <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-  <script src="./js/popper.min.js"
-          integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
-          crossorigin="anonymous">
-  </script>
+  <script src="./js/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+    crossorigin="anonymous">
+    </script>
 
   <script src="./js/bootstrap.min.js"
-          integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
-          crossorigin="anonymous">
-  </script>
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous">
+    </script>
 
   <script src="./js/streaming_record.js"> </script>
 </body>
+
 </html>
