@@ -17,10 +17,18 @@
   }
 
   .text-block {
-    width: 85%;
+    width: 95%;
+    border-radius: 6px;
+    background-color: #AFDF8E;
+    padding: 6px;
+    margin: 6px;
+  }
+
+  .text-playing-block {
+    width: 95%;
     border-radius: 6px;
     background-color: #afdfe4;
-    padding: 2px;
+    padding: 6px;
     margin: 6px;
   }
 

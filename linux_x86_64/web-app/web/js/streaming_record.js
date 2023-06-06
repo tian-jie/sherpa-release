@@ -25,49 +25,56 @@ const messageHtmlTemplate = `
 `;
 
 function initWebSocket() {
-  console.log('Creating websocket')
-  let protocol = 'ws://';
-  if (window.location.protocol == 'https:') {
-    protocol = 'wss://'
-  }
-  let server_ip = serverIpInput;
-  let server_port = serverPortInput;
-  console.log('protocol: ', protocol);
-  console.log('server_ip: ', server_ip);
-  console.log('server_port: ', server_port);
+  return new Promise((resolve, reject) => {
+    console.log('Creating websocket')
+    let protocol = 'ws://';
+    if (window.location.protocol == 'https:') {
+      protocol = 'wss://'
+    }
+    let server_ip = serverIpInput;
+    let server_port = serverPortInput;
+    console.log('protocol: ', protocol);
+    console.log('server_ip: ', server_ip);
+    console.log('server_port: ', server_port);
 
-  let uri = protocol + server_ip + ':' + server_port;
-  console.log('uri', uri);
-  socket = new WebSocket(uri);
-
-  // Listen for messages
-  socket.addEventListener('message', function (event) {
-    let message = JSON.parse(event.data);
-    if (message.segment in recognition_text) {
-      recognition_text[message.segment].message = message.text;
-      currentRecogize.innerHTML = message.text;
-    } else {
-      recognition_text.push({ message: message.text, segment: message.segment, startTime: audioCtx.currentTime });
-      if (message.segment > 0) {
-        var lastSegment = recognition_text[message.segment - 1];
-        lastSegment.endTime = audioCtx.currentTime;
-        // 写入当前页面
-        if (lastSegment.message.length > 0) {
-          var messageBlockHtml = messageHtmlTemplate
-            .replace("@@ID", lastSegment.segment)
-            .replace("@@starttime", lastSegment.startTime)
-            .replace("@@starttime_format", transTime(lastSegment.startTime))
-            .replace("@@message", lastSegment.message)
-            .replace("@@endtime", lastSegment.endTime);
-
-          resultArea.innerHTML = resultArea.innerHTML + messageBlockHtml;
-        }
-        currentRecogize.innerHTML = "";
-      }
+    let uri = protocol + server_ip + ':' + server_port;
+    console.log('uri', uri);
+    socket = new WebSocket(uri);
+    socket.onopen = function (event) {
+      console.log("WebSocket is open now.");
+      resolve();
     }
 
-    console.log('Received message: ', event.data);
-  });
+    // Listen for messages
+    socket.addEventListener('message', function (event) {
+      let message = JSON.parse(event.data);
+      if (message.segment in recognition_text) {
+        recognition_text[message.segment].message = message.text;
+        currentRecogize.innerHTML = message.text;
+      } else {
+        recognition_text.push({ message: message.text, segment: message.segment, startTime: message.startTime });
+        if (message.segment > 0) {
+          var lastSegment = recognition_text[message.segment - 1];
+          lastSegment.endTime = message.startTime;
+          // 写入当前页面
+          if (lastSegment.message.length > 0) {
+            var messageBlockHtml = messageHtmlTemplate
+              .replace("@@ID", lastSegment.segment)
+              .replace("@@starttime", lastSegment.startTime)
+              .replace("@@starttime_format", transTime(lastSegment.startTime))
+              .replace("@@message", lastSegment.message)
+              .replace("@@endtime", lastSegment.endTime);
+
+            resultArea.innerHTML = resultArea.innerHTML + messageBlockHtml;
+          }
+          currentRecogize.innerHTML = "";
+        }
+      }
+
+      console.log(recognition_text[message.segment].startTime, 'Received message: ', event.data);
+    });
+
+  })
 }
 
 window.onload = (event) => {
@@ -114,6 +121,7 @@ if (navigator.mediaDevices.getUserMedia) {
   const constraints = { audio: true };
 
   let onSuccess = function (stream) {
+
     if (!audioCtx) {
       audioCtx = new AudioContext();
     }
@@ -136,9 +144,20 @@ if (navigator.mediaDevices.getUserMedia) {
     }
     console.log(recorder);
 
+    let firstRecordClipTime = -1;
     recorder.onaudioprocess = function (e) {
+      if (firstRecordClipTime == -1) {
+        console.log('firstRecordClipTime', firstRecordClipTime);
+        firstRecordClipTime = e.playbackTime+1;
+      }
       let samples = new Float32Array(e.inputBuffer.getChannelData(0))
       samples = downsampleBuffer(samples, expectedSampleRate);
+      let samplesWithTime = new Float32Array(samples.length + 1);
+      samplesWithTime[0] = e.playbackTime - firstRecordClipTime;
+      // 将samples复制到另外一个samplesWithTime里，从第一个字节开始复制
+      for (var i = 0; i < samples.length; ++i) {
+        samplesWithTime[i + 1] = samples[i];
+      }
 
       let buf = new Int16Array(samples.length);
       for (var i = 0; i < samples.length; ++i) {
@@ -152,7 +171,7 @@ if (navigator.mediaDevices.getUserMedia) {
         buf[i] = s * 32767;
       }
 
-      socket.send(samples);
+      socket.send(samplesWithTime);
 
       leftchannel.push(buf);
       recordingLength += bufferSize;
@@ -170,8 +189,8 @@ if (navigator.mediaDevices.getUserMedia) {
       }
     };
 
-    function startRecord() {
-      initWebSocket();
+    async function startRecord() {
+      await initWebSocket();
       mediaStream.connect(recorder);
       mediaStream.connect(analyser);
       recorder.connect(audioCtx.destination);
@@ -206,18 +225,21 @@ if (navigator.mediaDevices.getUserMedia) {
       audioSection.style.display = "block";
       audio = document.createElement('audio');
       audio.setAttribute('controls', '');
-      //audioSection.appendChild(audio);
-      //audio.controls = true;
       let samples = flatten(leftchannel);
       const blob = toWav(samples);
 
       leftchannel = [];
       const audioURL = window.URL.createObjectURL(blob);
       audio.src = audioURL;
-      audioDuration.innerText = transTime(audio.duration);
+
+      initAudioEvent();
+
+      setTimeout(() => {
+        audioDuration.innerText = transTime(audio.duration);
+        console.log('audio: ', audio.currentTime, audio.duration);
+      }, 2000);
 
       console.log('recorder stopped');
-      initAudioEvent();
     };
   };
 
@@ -293,7 +315,6 @@ window.onresize = function () {
 window.onresize();
 function flatten(listOfSamples) {
   let n = 0;
-  console.log(listOfSamples);
   for (let i = 0; i < listOfSamples.length; ++i) {
     n += listOfSamples[i].length;
   }
@@ -364,35 +385,66 @@ function downsampleBuffer(buffer, exportSampleRate) {
   return result;
 };
 
+let timeoutHandle = -1;
+
 function playAudio(startTime, endTime) {
   var duration = endTime - startTime;
-  console.log("startTime: ", startTime);
-  console.log("endTime: ", endTime);
-  console.log("duration: ", duration);
+  console.log("record piece: ", startTime, endTime, duration);
   audio.currentTime = startTime;
   audio.play();
   audioPlayer.src = './pic/audiopause.png';
-  setTimeout(() => {
-    audio.pause(); 
+  if (timeoutHandle != -1) {
+    clearTimeout(timeoutHandle);
+    timeoutHandle = -1;
+  }
+  timeoutHandle = setTimeout(() => {
+    audio.pause();
     audioPlayer.src = './pic/audioplay.png';
+    timeoutHandle = -1;
   }, duration * 1000);
 }
 
+let currentHilightIndex = -1;
 
 function initAudioEvent() {
   var audioPlayer = document.getElementById('audioPlayer');
+  // 监听音频播放时间并更新进度条
+  audio.addEventListener('timeupdate', function () {
+    document.getElementById('audioCurTime').innerText = transTime(audio.currentTime);
+    // 从recognition_text里面找出startTime小于audio.currentTime的最后一条记录
+    var index = recognition_text.findLastIndex((element) => {
+      return element.startTime <= audio.currentTime;
+    }, audio.currentTime);
+
+    // 根据播放的时间，自动选中当前的识别段落
+    if (index != currentHilightIndex) {
+      // TODO: 以防万一，全部取消高亮，然后将选定的再高亮
+      var toHilightElement = document.getElementById('message_' + index);
+      if (toHilightElement != null) {
+        toHilightElement.className = "text-playing-block";
+        if (currentHilightIndex != -1) {
+          document.getElementById('message_' + currentHilightIndex).className = "text-block"
+        }
+        currentHilightIndex = index;
+      }
+      else {
+        if (currentHilightIndex != -1) {
+          document.getElementById('message_' + currentHilightIndex).className = "text-block"
+        }
+        currentHilightIndex = -1;
+      }
+
+    }
+
+  }, false);
+
+  // 监听播放完成事件
+  audio.addEventListener('ended', function () {
+    audioEnded();
+  }, false);
 
   // 点击播放/暂停图片时，控制音乐的播放与暂停
   audioPlayer.addEventListener('click', function () {
-    // 监听音频播放时间并更新进度条
-    audio.addEventListener('timeupdate', function () {
-      document.getElementById('audioCurTime').innerText = transTime(audio.currentTime);
-    }, false);
-
-    // 监听播放完成事件
-    audio.addEventListener('ended', function () {
-      audioEnded();
-    }, false);
 
     // 改变播放/暂停图片
     if (audio.paused) {

@@ -36,6 +36,7 @@ import numpy as np
 import sherpa_onnx
 import websockets
 from http_server import HttpServer
+import struct 
 
 
 def setup_logger(
@@ -530,11 +531,16 @@ class StreamingServer(object):
 
         stream = self.recognizer.create_stream()
         segment = 0
+        timestamp = 0.0
 
         while True:
             samples = await self.recv_audio_samples(socket)
             if samples is None:
                 break
+
+            # samples前4个字节作为float独立拿出来，剩下的数据放到另外的一个变量里
+            currentTimestamp = float(samples[:1][0])
+            samples = samples[1:]
 
             # TODO(fangjun): At present, we assume the sampling rate
             # of the received audio samples equal to --sample-rate
@@ -547,10 +553,12 @@ class StreamingServer(object):
                 message = {
                     "text": result,
                     "segment": segment,
+                    "startTime": timestamp
                 }
                 if self.recognizer.is_endpoint(stream):
                     self.recognizer.reset(stream)
                     segment += 1
+                    timestamp = currentTimestamp
 
                 print(message)
 
@@ -567,6 +575,7 @@ class StreamingServer(object):
         message = {
             "text": result,
             "segment": segment,
+            "startTime": timestamp
         }
 
         await socket.send(json.dumps(message))

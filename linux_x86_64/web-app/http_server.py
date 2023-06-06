@@ -33,6 +33,7 @@ _static_files = (
     ("/pic/audiopause.png", "image/png"),
     ("/pic/chat_record.png", "image/png"),
     ("/k2-logo.png", "image/png"),
+    ("/favicon.ico", "image/png"),
     ("/nav-partial.html", "text/html"),
     ("/offline_record.html", "text/html"),
     ("/streaming_record.html", "text/html"),
