@@ -66,6 +66,7 @@ function initWebSocket() {
               .replace("@@endtime", lastSegment.endTime);
 
             resultArea.innerHTML = resultArea.innerHTML + messageBlockHtml;
+            scrollToBottom(resultArea);
           }
           currentRecogize.innerHTML = "";
         }
@@ -502,4 +503,12 @@ function formatTime(value) {
   time += s[i].length == 1 ? ("0" + s[i]) : s[i];
 
   return time;
+}
+
+
+function scrollToBottom(divElement) {
+  // div的滚动高度 + div的客户区高度 >= div的总高度,说明已经滚动到底部
+  if (divElement.scrollTop + divElement.clientHeight >= divElement.scrollHeight) return
+  
+  divElement.scrollTop = divElement.scrollHeight  // 滚动到底部
 }
