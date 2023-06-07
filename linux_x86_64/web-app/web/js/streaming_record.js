@@ -222,7 +222,7 @@ if (navigator.mediaDevices.getUserMedia) {
 
       isRecording = false;
       canvas.style.display = "none";
-      recordImage.style.display = "block";
+      recordBtn.style.display = "none";
       audioSection.style.display = "block";
       audio = document.createElement('audio');
       audio.setAttribute('controls', '');
