@@ -15,11 +15,11 @@ RUN git clone https://github.com/k2-fsa/sherpa-onnx.git \
       .. \
     && make -j && export PYTHONPATH=$PWD/../sherpa-onnx/python/:$PWD/lib:$PYTHONPATH
 
-RUN git clone https://github.com/tian-jie/sherpa-release.git \
-    && cd /sherpa-release/linux_x86_64/web-app/web \
-    && python generate-certificate.py 
+COPY web-app /app
+# RUN cd /app/web \
+#     && python generate-certificate.py 
 
-WORKDIR /sherpa-release/linux_x86_64/web-app
+WORKDIR /app
 #RUN git lfs install \
 #    && git clone https://huggingface.co/csukuangfj/sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20 traindata
 
