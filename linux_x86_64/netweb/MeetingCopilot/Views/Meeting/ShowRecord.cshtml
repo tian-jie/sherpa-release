@@ -1,0 +1,75 @@
+﻿@{
+    Layout = null;
+}
+@model MeetingRecord
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css" crossorigin="anonymous" />
+
+    <script src="/js/jquery-3.6.0.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/css/style.css" crossorigin="anonymous">
+
+    <title>实时语音识别系统</title>
+</head>
+
+
+<body>
+    <div id="nav"></div>
+    <div class="mb-3">
+        <label for="results" class="form-label">@Model.Name</label>
+    </div>
+
+
+    <div id="current-recognize" style="fill: #aaa;border-radius: 10px">
+        @foreach (var sentence in Model.Sentences)
+        {
+            if (string.IsNullOrEmpty(sentence.message)) { continue; }
+            <div class="text-block" id="message_@sentence.segment" onclick="playAudio(@sentence.startTime, @sentence.endTime)">
+                <div class="time-block">javascript:transTime(@sentence.startTime)</div>
+                <span>@sentence.message</span>
+            </div>
+        }
+    </div>
+
+    <div class="audio-wrapper" id="audio-section" style="display: block;">
+        <div class="audio-left"><img id="audioPlayer" src="/pic/audioplay.png"></div>
+        <div class="audio-right">
+            <p style="max-width: 536px;">会议录音</p>
+            <div class="audio-time"><span class="audio-length-current" id="audioCurTime">00:00</span><span> / </span><span class="audio-length-current" id="audio-duration">00:00</span></div>
+        </div>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="/js/popper.min.js" crossorigin="anonymous"></script>
+    <script src="/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="/js/show_record.js" crossorigin="anonymous"></script>
+    <script>
+
+        window.onload = function () {
+            audio = document.createElement('audio');
+            audio.setAttribute('controls', '');
+            setAudioUrl(`/media/{@Model.Id}.mp3`);
+            recognition_text = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject((@Model.Sentences)));
+            initAudioEvent();
+
+            setTimeout(() => {
+                audioDuration.innerText = transTime(audio.duration);
+                console.log('audio: ', audio.currentTime, audio.duration);
+            }, 2000);
+        };
+
+
+    </script>
+</body>
+
+</html>

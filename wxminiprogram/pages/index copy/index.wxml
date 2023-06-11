@@ -1,0 +1,27 @@
+<!--index.wxml-->
+<view class="title">
+  实时会议语音识别系统
+</view>
+<view id="rec-text-area" class="rec-text-area">
+</view>
+
+<view wx:if="{{!isRecording && !recordFinished}}" class="record-button" id="record-button" bindtap="onClickRecordButton">
+  <image id="record-image" class="record-image" src="/pages/images/chat_record.png"></image>
+</view>
+
+<view wx:if="{{isRecording}}" class="current-recognize-area">
+  <view class="current-recognize-left"></view>
+  <view id="wav-view" class="current-recognize-right">
+    <canvas id="canvas"></canvas>
+  </view>
+</view>
+
+<view class="audio-wrapper" id="audio-section" style="display: {{!recordFinished?'none':'block'}}">
+  <view class="audio-left">
+    <image id="audioPlayer" class="audio-left-image" src="/pages/images/audioplay.png"></image>
+  </view>
+  <view class="audio-right">
+    <view style="max-width: 100%;margin: 16rpx;">会议录音</view>
+    <view class="audio-time"><span class="audio-length-current" id="audioCurTime">00:00</span><span> / </span><span class="audio-length-current" id="audio-duration">00:00</span></view>
+  </view>
+</view>

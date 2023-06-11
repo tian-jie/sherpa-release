@@ -1,0 +1,48 @@
+﻿@{
+    Layout = null;
+}
+
+@model IEnumerable<MeetingRecord>
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css" crossorigin="anonymous" />
+
+    <script src="/js/jquery-3.6.0.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/css/style.css" crossorigin="anonymous">
+
+    <title>实时语音识别系统</title>
+</head>
+
+
+<body>
+    <div id="nav"></div>
+    <div class="mb-3">
+        <label for="results" class="form-label">我的会议列表</label>
+        <a href="~/Meeting/CreateRecord"><span style="float: right; background-color: forestgreen;color: white;margin: 4px 10px;padding: 4px 10px;">新会议</span></a>
+
+    </div>
+    @foreach (var meeting in Model)
+    {
+        <a href="~/Meeting/ShowRecord?meetingId=@meeting.Id"><div>@meeting.Name</div></a>
+    }
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="/js/popper.min.js" crossorigin="anonymous">
+    </script>
+
+    <script src="/js/bootstrap.min.js" crossorigin="anonymous">
+    </script>
+
+    <script src="/js/streaming_record.js"> </script>
+</body>
+
+</html>

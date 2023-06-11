@@ -1,0 +1,7 @@
+{
+  "projectname": "wxminiprogram",
+  "setting": {
+    "compileHotReLoad": false,
+    "urlCheck": false
+  }
+}

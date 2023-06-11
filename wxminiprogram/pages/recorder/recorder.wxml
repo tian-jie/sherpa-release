@@ -1,0 +1,3 @@
+<!--pages/recorder.wxml-->
+<!-- <web-view src="https://sherpa.zainot.com/?" /> -->
+<web-view src="{{webUrl}}" />
