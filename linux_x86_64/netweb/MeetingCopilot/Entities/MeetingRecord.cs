@@ -13,9 +13,9 @@ public class MeetingRecord
     public string Name { get; set; } = "";
 
     public string UserId { get; set; } = "";
-    public DateTime StartTime { get; set; }
-    public DateTime EndTime { get; set; }
-    public Timestamp Duration { get; set; } = null!;
+    public long StartTime { get; set; }
+    public long EndTime { get; set; }
+    public long Duration { get; set; } = 0;
 
     public string VoiceUrl { get; set; } = "";
     public string VoiceData { get; set; } = "";

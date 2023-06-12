@@ -216,6 +216,7 @@ if (navigator.mediaDevices.getUserMedia) {
             canvas.style.display = "block";
             recordImage.style.display = "none";
             meetingInfo.StartTime = new Date().getTime();
+            console.log('meetingInfo.StartTime: ', meetingInfo.StartTime)
             isRecording = true;
 
         }
@@ -239,22 +240,22 @@ if (navigator.mediaDevices.getUserMedia) {
             canvas.style.display = "none";
             recordBtn.style.display = "none";
             audioSection.style.display = "block";
-            audio = document.createElement('audio');
-            audio.setAttribute('controls', '');
             let samples = flatten(leftchannel);
             const blob = toWav(samples);
             var mp3Blob = toMp3(samples);
 
             leftchannel = [];
             const audioURL = window.URL.createObjectURL(mp3Blob);
+            audio = document.createElement('audio');
+            audio.setAttribute('controls', '');
             audio.src = audioURL;
 
             initAudioEvent();
-
-            setTimeout(() => {
+            audio.addEventListener('canplay', (event) => {
+                console.log('canplay: ', event);
+                console.log('audio.duration: ', audio.duration);
                 audioDuration.innerText = transTime(audio.duration);
-                console.log('audio: ', audio.currentTime, audio.duration);
-            }, 2000);
+            });
 
             console.log('recorder stopped');
             meetingInfo.EndTime = new Date();

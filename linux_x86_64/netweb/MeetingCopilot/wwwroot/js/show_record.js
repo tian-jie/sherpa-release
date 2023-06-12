@@ -8,17 +8,24 @@ let recordingLength = 0;  // number of samples so far
 let isRecording = false;
 
 
-function setAudioUrl(base64) {
-    const blob = new Blob([base64], { type: 'audio/wav' });
-    const audioURL = window.URL.createObjectURL(blob);
+function setAudioUrl(audioURL) {
+    audio = document.createElement('audio');
+    audio.setAttribute('controls', '');
     audio.src = audioURL;
+
+    audio.addEventListener('canplay', (event) => {
+        console.log('audio.duration: ', audio.duration);
+        audioDuration.innerText = transTime(audio.duration);
+        initAudioEvent();
+  });
+
 }
 
 let timeoutHandle = -1;
 
 function playAudio(startTime, endTime) {
     var duration = endTime - startTime;
-    console.log("record piece: ", startTime, endTime, duration);
+    console.log('record piece: ', startTime, endTime, duration);
     audio.currentTime = startTime;
     audio.play();
     audioPlayer.src = '/pic/audiopause.png';
@@ -37,9 +44,6 @@ let currentHilightIndex = -1;
 
 function initAudioEvent() {
     var audioPlayer = document.getElementById('audioPlayer');
-    audio = document.createElement('audio');
-    audio.setAttribute('controls', '');
-    audio.setAttribute('preload', 'auto');
 
     // 监听音频播放时间并更新进度条
     audio.addEventListener('timeupdate', function () {
@@ -97,7 +101,7 @@ function initAudioEvent() {
 */
 function audioEnded() {
     document.getElementById('audioCurTime').innerText = transTime(0);
-    document.getElementById('audioPlayer').src = './pic/audioplay.png';
+    document.getElementById('audioPlayer').src = '/pic/audioplay.png';
 }
 
 /**

@@ -56,16 +56,10 @@
     <script>
 
         window.onload = function () {
-            audio = document.createElement('audio');
-            audio.setAttribute('controls', '');
-            setAudioUrl(`/media/{@Model.Id}.mp3`);
+            //setAudioUrl(`/media/@Model.Id` + `.mp3`);
+            setAudioUrl('https://asr.zainot.com/media/TA8VagCcODEW5h0r47.mp3');
             recognition_text = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject((@Model.Sentences)));
-            initAudioEvent();
 
-            setTimeout(() => {
-                audioDuration.innerText = transTime(audio.duration);
-                console.log('audio: ', audio.currentTime, audio.duration);
-            }, 2000);
         };
 
 

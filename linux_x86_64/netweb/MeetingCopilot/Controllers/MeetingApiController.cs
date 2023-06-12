@@ -44,7 +44,10 @@ namespace MeetingCopilot.Controllers
                     mp3Stream.Write(mp3Data, 0, mp3Data.Length);
                 }
                 meetingRecord.VoiceUrl = $"/media/{meetingRecord.Id}.mp3";
+                meetingRecord.VoiceData = "";
             }
+            await _meetingService.UpdateAsync(meetingRecord);
+
             return Ok(new { statusCode = "Success", meetingId = id });
         }
 
