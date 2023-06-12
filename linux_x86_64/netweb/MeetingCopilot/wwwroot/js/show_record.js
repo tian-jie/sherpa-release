@@ -154,3 +154,11 @@ function base64ToBlob(base64) {
     var blob = new Blob([ab]);
     return blob;
 }
+
+function updateTimeBlockToVisibleTime() {
+    var timeBlocks = $(".time-block");
+    for (var i = 0; i < timeBlocks.length; i++) {
+        var timeBlock = timeBlocks[i];
+        timeBlock.innerText = transTime(timeBlock.innerText);
+    }
+}

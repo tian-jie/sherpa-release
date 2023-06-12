@@ -34,7 +34,7 @@
         {
             if (string.IsNullOrEmpty(sentence.message)) { continue; }
             <div class="text-block" id="message_@sentence.segment" onclick="playAudio(@sentence.startTime, @sentence.endTime)">
-                <div class="time-block">javascript:transTime(@sentence.startTime)</div>
+                <div class="time-block">@sentence.startTime</div>
                 <span>@sentence.message</span>
             </div>
         }
@@ -58,9 +58,8 @@
         window.onload = function () {
             setAudioUrl(`/media/@Model.Id` + `.mp3`);
             recognition_text = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject((@Model.Sentences)));
-
+            updateTimeBlockToVisibleTime();
         };
-
 
     </script>
 </body>
