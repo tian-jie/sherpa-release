@@ -2,20 +2,21 @@ import md5 from "./md5";
 
 function wechatSign(appId, appSecret, nounce, timestamp, params) {
 
-  var appkey = 'VerificationSign2019'; //key是自定义
-  var newObj = objKeySort(params);
   let connects = '';
   params.appId = appId;
   params.appSecret = appSecret;
   params.nounce = nounce;
   params.timestamp = timestamp;
+  var newObj = objKeySort(params);
 
   
   for (let item in newObj) {
     connects += newObj[item];
   }
 
-  return md5(connects);
+  var sign = md5(connects);
+  console.log('connects: ', connects, 'signature: ', sign);
+  return sign;
 }
 
 

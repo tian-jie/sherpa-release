@@ -41,7 +41,7 @@ namespace MeetingCopilot.Controllers
             var appSecret = "wx-app-appSecret";
             var nonce = Request.Query["nonce"];
             var timestamp = int.Parse(Request.Query["timestamp"]);
-            var sign = Request.Query["sign"];
+            var sign = Request.Query["sign"].ToString();
             var userid = Request.Query["userid"];
 
             List<KeyValuePair<string, string>> kvs = new List<KeyValuePair<string, string>>();
@@ -54,11 +54,26 @@ namespace MeetingCopilot.Controllers
             var s = SortParams(kvs);
             var checkSign = MD5Hash(s);
 
-            //if (sign != checkSign)
-            //{
-            //    _logger.LogError($"checksign failed. sign={sign}, checkSign={checkSign}");
-            //    return StatusCode(401);
-            //}
+            _logger.LogDebug($"connects: {s}, sign: {checkSign}");
+
+            // 检查签名
+            if (sign.ToLower() != checkSign.ToLower())
+            {
+                _logger.LogError($"checksign failed. sign={sign}, checkSign={checkSign}");
+                return StatusCode(401);
+            }
+
+            // 检查有效时间，超过30秒的，认为是无效登录
+            var currentTime = DateTime.UtcNow;
+            var signTime = new DateTime(1970, 1, 1).AddSeconds(timestamp);
+
+            var timeDiff = Math.Abs((signTime.Ticks - currentTime.Ticks) / TimeSpan.TicksPerSecond);
+            _logger.LogDebug($"timeDiff={timeDiff}");
+            if (timeDiff > 30)
+            {
+                _logger.LogError($"time check failed. timeDiff={signTime.Ticks/ TimeSpan.TicksPerSecond} - {currentTime.Ticks/ TimeSpan.TicksPerSecond} = {timeDiff}");
+                return StatusCode(401);
+            }
 
             var user = new SysUser()
             {
@@ -79,47 +94,6 @@ namespace MeetingCopilot.Controllers
             return RedirectToAction("Index", "Meeting");
         }
 
-
-
-
-
-
-
-        private string CreateJwt()
-        {
-
-            // 1. 定义需要使用到的Claims
-            var claims = new[]
-            {
-                new Claim("userid", "userid"),
-            };
-
-            // 2. 从 appsettings.json 中读取SecretKey
-            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:SecretKey"]));
-
-            // 3. 选择加密算法
-            var algorithm = SecurityAlgorithms.HmacSha256;
-
-            // 4. 生成Credentials
-            var signingCredentials = new SigningCredentials(secretKey, algorithm);
-
-            // 5. 从 appsettings.json 中读取Expires
-            var expires = Convert.ToDouble(_configuration["JWT:Expires"]);
-
-            // 6. 根据以上，生成token
-            var token = new JwtSecurityToken(
-                _configuration["JWT:Issuer"],       //Issuer
-                _configuration["JWT:Audience"],     //Audience
-                claims,                             //Claims,
-                DateTime.Now,                       //notBefore
-                DateTime.Now.AddDays(expires),      //expires
-                signingCredentials                  //Credentials
-            );
-
-            // 7. 将token变为string
-            var jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
-            return jwtToken;
-        }
 
         public string MD5Hash(string input)
         {

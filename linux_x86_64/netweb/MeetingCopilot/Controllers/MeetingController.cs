@@ -30,7 +30,7 @@ namespace MeetingCopilot.Controllers
             // 获取列表
             var meetingList = await _meetingService.GetByUserAsync(userName);
 
-            return View(meetingList);
+            return View(meetingList.OrderByDescending(a=>a.StartTime));
         }
 
         public async Task<IActionResult> ShowRecord(string meetingId)

@@ -25,13 +25,19 @@
 <body>
     <div id="nav"></div>
     <div class="mb-3">
-        <label for="results" class="form-label">我的会议列表</label>
+        <label for="results" class="form-label" style="margin-left: 20px;">我的会议列表</label>
         <a href="~/Meeting/CreateRecord"><span style="float: right; background-color: forestgreen;color: white;margin: 4px 10px;padding: 4px 10px;">新会议</span></a>
 
     </div>
     @foreach (var meeting in Model)
     {
-        <a href="~/Meeting/ShowRecord?meetingId=@meeting.Id"><div>@meeting.Name</div></a>
+        <a href="~/Meeting/ShowRecord?meetingId=@meeting.Id">
+            <div style="margin: 20px; padding: 10px;background-color:lightblue;border-radius: 6px;">
+                <div style="font-size:smaller;color:#666;">@(new DateTime(1970, 1, 1).AddMilliseconds(meeting.StartTime).ToString("yyyy-MM-dd HH:mm:ss")) - 时长：@(new TimeSpan(0, 0, 0, 0, (int)meeting.Duration))</div>
+                <div style="color:#000;">@meeting.Name</div>
+            </div>
+
+        </a>
     }
 
     <!-- Optional JavaScript -->

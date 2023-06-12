@@ -29,7 +29,7 @@
     </div>
 
 
-    <div id="current-recognize" style="fill: #aaa;border-radius: 10px">
+    <div id="current-recognize" class="rec-text-area">
         @foreach (var sentence in Model.Sentences)
         {
             if (string.IsNullOrEmpty(sentence.message)) { continue; }

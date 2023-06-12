@@ -258,8 +258,8 @@ if (navigator.mediaDevices.getUserMedia) {
             });
 
             console.log('recorder stopped');
-            meetingInfo.EndTime = new Date();
-
+            meetingInfo.EndTime = new Date().getTime();
+            meetingInfo.Duration = meetingInfo.EndTime - meetingInfo.StartTime;
             // 语音存mp3的，减少流量消耗
             meetingInfo.VoiceData = await blobToBase64(mp3Blob);
             saveToServer();
