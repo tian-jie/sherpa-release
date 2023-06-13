@@ -8,8 +8,8 @@ import {
   wxHttpGet
 } from '../../utils/wx-async'
 
-//const baseUrl = 'https://asr.zainot.com'
-const baseUrl = 'https://localhost:7270'
+const baseUrl = 'https://asr.zainot.com'
+//const baseUrl = 'https://localhost:7270'
 Page({
 
   /**
