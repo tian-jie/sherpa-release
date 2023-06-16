@@ -1,5 +1,6 @@
 {
   "pages": [
+    "pages/native-index/index",
     "pages/index/index",
     "pages/recorder/index",
     "pages/logs/logs"

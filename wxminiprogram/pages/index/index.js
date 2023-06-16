@@ -1,4 +1,9 @@
 // index.js
+import {
+  wxHttpGet, wxLogin
+} from '../../utils/wx-async'
+
+
 // 获取应用实例
 const app = getApp()
 
@@ -19,16 +24,31 @@ Page({
   },
   async onLoad() {
     console.log('onLoad....');
-    var userInfo = await wx.getUserProfile;
+    var code = await wx.login();
+    //TODO: 用code根服务器要openid
+    var userInfo = {
+      "openid": "u000001",
+      "session_key": "xxxxx",
+      "unionid": "xxxxx",
+      "errcode": 0,
+      "errmsg": "xxxxx"
+    };
+
+    await wx.setStorage({key: 'userInfo', data: userInfo});
+
     if (userInfo) {
-      console.log('wx.getUserProfile: ', userInfo);
-      this.setData({
-        canIUseGetUserProfile: true
-      })
+      console.log('userInfo: ', userInfo);
       wx.redirectTo({
+<<<<<<< HEAD
         url: '/pages/recorder/index?userid=u0000001',
+=======
+        url: '/pages/native-index/index',
+>>>>>>> 01f0d568833e1c5be32e61a57f8b6b308b090d51
       })
 
+      // wx.redirectTo({
+      //   url: '/pages/recorder/recorder?userid=u0000001',
+      // })
     }
   },
   getUserProfile(e) {

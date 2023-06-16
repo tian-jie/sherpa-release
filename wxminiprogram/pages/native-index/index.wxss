@@ -1,0 +1,138 @@
+/**index.wxss**/
+.userinfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #aaa;
+}
+
+.userinfo-avatar {
+  overflow: hidden;
+  width: 128rpx;
+  height: 128rpx;
+  margin: 20rpx;
+  border-radius: 50%;
+}
+
+.title {
+  width: 100%;
+  text-align: center;
+  background-color: aliceblue;
+  padding: 20rpx;
+  font-size: larger;
+}
+
+.rec-text-area {
+  height: 70vh;
+  background-color: #d85d5d;
+  overflow-y: scroll;
+}
+
+.record-button {
+  background: #F44336;
+  border: none;
+  border-radius: 50%;
+  width: 128rpx;
+  height: 128rpx;
+  position: absolute;
+  bottom: 20rpx;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  display: block;
+}
+
+.record-image {
+  width: 80rpx;
+  height: 80rpx;
+  margin-top: 28rpx;
+}
+
+.text-block {
+  width: 95%;
+  border-radius: 6px;
+  background-color: #AFDF8E;
+  padding: 6px;
+  margin: 6px;
+}
+
+.text-playing-block {
+  width: 95%;
+  border-radius: 6px;
+  background-color: #afdfe4;
+  padding: 6px;
+  margin: 6px;
+}
+
+.header-block {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background-color: gray;
+  font-size: xx-small;
+}
+
+.time-block {
+  width: 100%;
+  height: 12px;
+  font-size: xx-small;
+}
+
+.audio-wrapper {
+  background-color: #fcfcfc;
+  /* background-color: #dddddd; */
+  position: absolute;
+  margin: 10px auto;
+  width: 100%;
+  height: 128rpx;
+  border: 1px solid #e0e0e0;
+  bottom: 30rpx;
+}
+
+.audio-left {
+  float: left;
+  text-align: center;
+  width: 150rpx;
+  height: 128rpx;
+}
+
+.audio-left-image {
+  margin: 16rpx auto;
+  width: 96rpx;
+  height: 96rpx;
+}
+
+.audio-right {
+  margin-right: 20rpx;
+  float: right;
+  width: 580rpx;
+  height: 100%;
+}
+
+
+.audio-time {
+  overflow: hidden;
+  margin-left: 16rpx;
+}
+
+.current-recognize-area {
+  width: 100%;
+  position: absolute;
+  bottom: 30rpx;
+  height: 200rpx;
+}
+
+.current-recognize-left {
+  float: left;
+  width: 600rpx;
+  height: 100%;
+  background-color: aquamarine;
+}
+
+.current-recognize-right {
+  width: 150rpx;
+  height: 100%;
+  background-color: blueviolet;
+  margin: 0rpx;
+  float: right;
+}
