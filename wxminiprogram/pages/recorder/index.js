@@ -5,6 +5,13 @@ import {
   WaveView
 } from '../../utils/WaveView';
 
+import {
+  wxRequestGet,
+  wxRequestPost,
+  wxApiLogin,
+  lameDecodeMp3
+} from '../../utils/wx-async'
+
 let recorderManager; // 录音管理器
 let websocket; // websocket 连接
 
@@ -40,12 +47,13 @@ Page({
       await stopRecord(this);
     }
   },
-  onLoad() {
-    if (wx.getUserProfile) {
-      this.setData({
-        canIUseGetUserProfile: true
-      })
-    }
+  async onLoad(options) {
+    // if (wx.getUserProfile) {
+    //   this.setData({
+    //     canIUseGetUserProfile: true
+    //   })
+    // }
+    await wxApiLogin(options.userid);
   },
   getUserProfile(e) {
     // 推荐使用wx.getUserProfile获取用户信息，开发者每次通过该接口获取用户个人信息均需用户确认，开发者妥善保管用户快速填写的头像昵称，避免重复弹窗
@@ -60,14 +68,7 @@ Page({
       }
     })
   },
-  getUserInfo(e) {
-    // 不推荐使用getUserInfo获取用户信息，预计自2021年4月13日起，getUserInfo将不再弹出弹窗，并直接返回匿名的用户个人信息
-    console.log(e)
-    this.setData({
-      userInfo: e.detail.userInfo,
-      hasUserInfo: true
-    })
-  }
+
 })
 
 
@@ -92,6 +93,10 @@ function initWaveView(that) {
     })
 }
 
+let firstRecordClipTime = -1;
+let recorderTime = 0;
+let recorderTimeIntervalHandler = -1;
+
 async function startRecord(that) {
   console.debug('startRecord...');
   // 创建录音管理器
@@ -103,15 +108,57 @@ async function startRecord(that) {
   recorderManager.start({
     sampleRate: 16000,
     numberOfChannels: 1,
-    encodeBitRate: 96000,
-    format: 'PCM',
+    //encodeBitRate: 96000,
+    format: 'mp3',
     frameSize: 8
   }); // 开始录音
-  recorderManager.onFrameRecorded((res) => {
+
+
+  recorderTimeIntervalHandler = setInterval(() => {
+    recorderTime++;
+  }, 100);
+
+  let firstRecordClipTime = -1;
+  let leftchannel = []; // TODO: Use a single channel
+  let recordingLength = 0; // number of samples so far
+
+  recorderManager.onFrameRecorded(async (res) => {
     console.debug('recorderManager.onFrameRecorded...');
-    console.info(res);
+    if (firstRecordClipTime == -1) {
+      console.log('firstRecordClipTime: ', firstRecordClipTime);
+      firstRecordClipTime = recorderTime + 10;
+    }
+    var wav = await lameDecodeMp3(res.frameBuffer);
+    let samples = new Float32Array(wav);
+    console.log(samples);
+    // let samples = new Float32Array(res.frameBuffer);
+    // let samplesWithTime = new Float32Array(samples.length + 1);
+    // samplesWithTime[0] = (recorderTime - firstRecordClipTime) / 10.0;
+    // // 将samples复制到另外一个samplesWithTime里，从第一个字节开始复制
+    // for (var i = 0; i < samples.length; ++i) {
+    //   samplesWithTime[i + 1] = samples[i];
+    // }
+
+    // let buf = new Int16Array(samples.length);
+
+    // for (var i = 0; i < samples.length; ++i) {
+    //   let s = samples[i];
+    //   // if (s >= 1)
+    //   //   s = 1;
+    //   // else if (s <= -1)
+    //   //   s = -1;
+
+    //   samples[i] = s;
+    //   //buf[i] = s * 32767;
+    //   buf[i] = s;
+    // }
+    // console.log('samples: ', buf);
+    // leftchannel.push(buf);
+    // recordingLength += 2048;
+
+    //console.info(res);
     websocket.send({
-      data: res.frameBuffer,
+      data: samplesWithTime,
       complete: (res) => {
         console.debug(res);
       }
@@ -125,8 +172,9 @@ function stopRecord(that) {
   that.setData({
     isRecording: false,
     recordFinished: true
-  })
+  });
   recorderManager.stop() // 停止录音
+  clearInterval(recorderTimeIntervalHandler);
 }
 
 
@@ -134,11 +182,23 @@ function initWebsocket(that) {
   return new Promise((resolve, reject) => {
     console.debug('initWebsocket...');
     var socket = wx.connectSocket({
-      url: 'wss://asr.zainot.com'
+      url: 'wss://sherpa.zainot.com',
+      success: function (res) {
+        console.debug('wx.connectSocket success ', res);
+      },
+      fail: function (res) {
+        console.error('wx.connectSocket fail ', res);
+      },
     });
 
     socket.onOpen(res => {
       // TODO: 检查确认是200连接成功才返回ok
+      console.debug('websocket opened... ', res);
+      websocket = socket;
+      resolve(socket);
+    });
+
+    socket.onError(res => {
       console.debug('websocket opened... ', res);
       websocket = socket;
       resolve(socket);

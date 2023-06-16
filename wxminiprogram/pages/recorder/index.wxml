@@ -11,7 +11,7 @@
 
 <view wx:if="{{isRecording}}" class="current-recognize-area">
   <view class="current-recognize-left"></view>
-  <view id="wav-view" class="current-recognize-right">
+  <view id="wav-view" class="current-recognize-right" capture-bind:tap="onClickRecordButton">
     <canvas id="canvas"></canvas>
   </view>
 </view>

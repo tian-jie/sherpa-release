@@ -26,7 +26,7 @@ Page({
         canIUseGetUserProfile: true
       })
       wx.redirectTo({
-        url: '/pages/recorder/recorder?userid=u0000001',
+        url: '/pages/recorder/index?userid=u0000001',
       })
 
     }

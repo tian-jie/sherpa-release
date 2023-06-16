@@ -1,7 +1,7 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/recorder/recorder",
+    "pages/recorder/index",
     "pages/logs/logs"
   ],
   "window": {

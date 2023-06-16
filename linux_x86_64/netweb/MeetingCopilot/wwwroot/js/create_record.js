@@ -186,6 +186,7 @@ if (navigator.mediaDevices.getUserMedia) {
                 samples[i] = s;
                 buf[i] = s * 32767;
             }
+            console.log(samplesWithTime);
 
             socket.send(samplesWithTime);
 

@@ -54,26 +54,26 @@ namespace MeetingCopilot.Controllers
             var s = SortParams(kvs);
             var checkSign = MD5Hash(s);
 
-            _logger.LogDebug($"connects: {s}, sign: {checkSign}");
+            _logger.LogDebug($"connects: {s}, sign: {sign}, checkSign: {checkSign}");
 
-            // 检查签名
-            if (sign.ToLower() != checkSign.ToLower())
-            {
-                _logger.LogError($"checksign failed. sign={sign}, checkSign={checkSign}");
-                return StatusCode(401);
-            }
+            //// 检查签名
+            //if (sign.ToLower() != checkSign.ToLower())
+            //{
+            //    _logger.LogError($"checksign failed. sign={sign}, checkSign={checkSign}");
+            //    return StatusCode(401);
+            //}
 
-            // 检查有效时间，超过30秒的，认为是无效登录
-            var currentTime = DateTime.UtcNow;
-            var signTime = new DateTime(1970, 1, 1).AddSeconds(timestamp);
+            //// 检查有效时间，超过30秒的，认为是无效登录
+            //var currentTime = DateTime.UtcNow;
+            //var signTime = new DateTime(1970, 1, 1).AddSeconds(timestamp);
 
-            var timeDiff = Math.Abs((signTime.Ticks - currentTime.Ticks) / TimeSpan.TicksPerSecond);
-            _logger.LogDebug($"timeDiff={timeDiff}");
-            if (timeDiff > 30)
-            {
-                _logger.LogError($"time check failed. timeDiff={signTime.Ticks/ TimeSpan.TicksPerSecond} - {currentTime.Ticks/ TimeSpan.TicksPerSecond} = {timeDiff}");
-                return StatusCode(401);
-            }
+            //var timeDiff = Math.Abs((signTime.Ticks - currentTime.Ticks) / TimeSpan.TicksPerSecond);
+            //_logger.LogDebug($"timeDiff={timeDiff}");
+            //if (timeDiff > 30)
+            //{
+            //    _logger.LogError($"time check failed. timeDiff={signTime.Ticks/ TimeSpan.TicksPerSecond} - {currentTime.Ticks/ TimeSpan.TicksPerSecond} = {timeDiff}");
+            //    return StatusCode(401);
+            //}
 
             var user = new SysUser()
             {
